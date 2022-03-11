@@ -13,12 +13,14 @@ namespace GameEngine
 {
     public class Game1 : Microsoft.Xna.Framework.Game
     {
-        GraphicsDeviceManager graphics; //da acesso às configurações gráficas do PC que está rodando esse jogo, como resoluções por ex.
-        SpriteBatch spriteBatch; //pega todos os sprites diferentes e enfileira eles em um só batch e executar eles em uma iteration.
+        //da acesso às configurações gráficas do PC que está rodando esse jogo, como resoluções por ex.
+        //pega todos os sprites diferentes e enfileira eles em um só batch e executar eles em uma iteration.
+        GraphicsDeviceManager graphics; 
+        SpriteBatch spriteBatch; 
 
-        Texture2D image;
-        Vector2 position;
-        public Game1() //Constructor, chamada toda vez que a classe game é criada. 
+        public List<GameObject> objects = new List<GameObject>();
+        
+        public Game1() 
         {
             graphics = new GraphicsDeviceManager(this); 
             Content.RootDirectory = "Content"; //seta a pasta raiz pro gerenciador de conteúdo. 
@@ -27,44 +29,72 @@ namespace GameEngine
             graphics.IsFullScreen = false;
             
         }
-
-        protected override void Initialize() //inicializa as variáveis não gráficas, tipo string, variáveis de data etc
+       
+        //inicializa as variáveis não gráficas(string, variáveis de data etc)
+        protected override void Initialize() 
         {
-            position = new Vector2(800, 450);
             base.Initialize(); 
         }
-        protected override void LoadContent() //carrega o conteúdo gráfico do jogo e game assets como audio
+
+        //carrega o conteúdo gráfico do jogo e game assets como audio
+        protected override void LoadContent() 
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            image = TextureLoader.Load("sprite", Content);
+            LoadLevel();
         }
-        protected override void Update(GameTime gameTime) //executado em cada frame do jogo, geralmente em 60fps, cada frame roda as lógicas do jogo, como colisão, updates no mundo, etc. 
+
+        //executado em cada frame do jogo, geralmente em 60fps,
+        //cada frame roda as lógicas do jogo, como colisão, updates no mundo, etc. 
+        protected override void Update(GameTime gameTime) 
         {
             Input.Update();
-
-            if (Input.IsKeyDown(Keys.D) == true)
-                position.X += 5;
-            else if (Input.IsKeyDown(Keys.A) == true)
-                position.X -= 5;
-            if (Input.IsKeyDown(Keys.S) == true)
-                position.Y += 5;
-            else if (Input.IsKeyDown(Keys.W) == true)
-                position.Y -= 5;
-                            
+                                   
             base.Update(gameTime); //faz os updates das funções que o FNA roda no background
         }
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Black); //seta cor de fundo no executável e da clear nos frames passados. executa a cada 1 frame.
-
-            spriteBatch.Begin();
-            //entre esses dois comandos, serão chamados todos os sprites que o jogo tiver
-            spriteBatch.Draw(image, position, Color.White);
+            //seta cor de fundo no executável e da clear nos frames passados. executa a cada 1 frame.
+            GraphicsDevice.Clear(Color.Black);
+            //faz os sprites serem carregados do fundo para a frente onde 0 mais longe, 1 mais perto da tela
+            spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend); 
+            DrawObjects();           
             spriteBatch.End();
-            
-            base.Draw(gameTime); //chama os updates que o FNA faz no background
+            //chama os updates que o FNA faz no background
+            base.Draw(gameTime); 
 
+        }
+
+        public void LoadLevel()
+        {
+            objects.Add(new Player(new Vector2(800, 450)));
+            LoadObjects();
+
+        }
+
+        public void LoadObjects()
+        {
+            for (int i = 0; i <objects.Count; i++)
+            {
+                objects[i].Initialize();
+                objects[i].Load(Content);
+            }
+
+        }
+        public void UpdateObjects()
+        {
+            for (int i = 0; i<objects.Count; i++)
+            {
+                objects[i].Update(objects);
+            }
+        }
+
+        public void DrawObjects()
+        {
+            for (int i = 0; i < objects.Count; i++)
+            {
+                objects[i].Draw(spriteBatch);
+            }
         }
     }
 
